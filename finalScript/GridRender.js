@@ -158,10 +158,7 @@ export default class GridRender {
                     }
                 }
             }
-            // 78909876543353543544
-            // Check col resize123456789
-            // asdf
-            // asdf
+
             // Inside pointerdown, when starting column resize:
             if (y < Config.COL_HEADER_HEIGHT) {
                 for (let col = visibleRange.startCol; col <= visibleRange.endCol; col++) {
@@ -220,7 +217,7 @@ export default class GridRender {
 
         this.cellMap = newMap;
         this.colManager.insertColumn(insertIndex); // You need to implement this
-        Config.totalCols++;
+        // Config.totalCols++;
         this.drawGrid();
     }
     insertRowBelow() {
@@ -241,7 +238,7 @@ export default class GridRender {
 
         this.cellMap = newMap;
         this.rowManager.insertRow(insertIndex); // You need to implement this
-        Config.totalRows++; // 👈 Increase row count
+        // Config.totalRows++; // 👈 Increase row count
         this.drawGrid();
     }
     insertRowAbove() {
@@ -262,7 +259,7 @@ export default class GridRender {
 
         this.cellMap = newMap;
         this.rowManager.insertRow(insertIndex); // Same helper used
-        Config.totalRows++; // 👈 Increase row count
+        // Config.totalRows++; // 👈 Increase row count
         this.drawGrid();
     }
     insertColumnLeft() {
@@ -283,7 +280,77 @@ export default class GridRender {
 
         this.cellMap = newMap;
         this.colManager.insertColumn(insertIndex); // Same helper used
-        Config.totalCols++;
+        // Config.totalCols++;
+        this.drawGrid();
+    }
+    handleArrowKeys(e) {
+        if (!this.selectionManager.startCell) return;
+
+        let { row, col } = this.selectionManager.startCell;
+         this.commitEditorChange(row, col);
+
+        switch (e.key) {
+            case 'ArrowUp':
+                row = Math.max(0, row - 1);
+
+                break;
+            case 'ArrowDown':
+                row = Math.min(Config.totalRows - 1, row + 1);
+                break;
+            case 'ArrowLeft':
+                col = Math.max(0, col - 1);
+                break;
+            case 'ArrowRight':
+                col = Math.min(Config.totalCols - 1, col + 1);
+                break;
+            default:
+                return; // ignore other keys
+        }
+        console.log(row);
+        e.preventDefault(); // prevent scrolling the page
+
+        this.selectionManager.setStart(row, col);
+        this.selectionManager.setEnd(row, col);
+
+
+        const key = `${row},${col}`;
+        if (!this.cellMap.has(key)) {
+            this.cellMap.set(key, new Cell(""));
+        }
+        // Config.dragStartCell = cell;
+
+
+        // Config.isDragging = true;
+        const cellObj = this.cellMap.get(key);
+        const cellLeft = Config.ROW_HEADER_WIDTH + this.colManager.getOffset(col) - this.scrollManager.scrollX;
+        const cellTop = Config.COL_HEADER_HEIGHT + this.rowManager.getOffset(row) - this.scrollManager.scrollY;
+        const width = this.colManager.getWidth(col);
+        const height = this.rowManager.getHeight(row);
+
+        const canvasRect = this.canvas.getBoundingClientRect();
+
+        // Prevent input from overlapping row/col headers
+        if (cellLeft < Config.ROW_HEADER_WIDTH || cellTop < Config.COL_HEADER_HEIGHT) {
+            this.editor.style.display = "none"; // Hide if overlapping header
+            return;
+        }
+
+        this.editor.style.left = canvasRect.left + cellLeft + 1 + "px";
+        this.editor.style.top = canvasRect.top + cellTop + 1 + "px";
+        this.editor.style.width = width + "px";
+        this.editor.style.height = height + "px";
+        // this.editor.style.display = "block";
+
+
+
+        this.editor.value = cellObj.value || "";
+
+        this.editor.dataset.originalValue = this.editor.value; // ✅ Set once
+        this.editor.style.display = "block";
+        setTimeout(() => {
+            this.editor.focus();
+            // editor.select(); // Optional: select all content
+        }, 1);
         this.drawGrid();
     }
 
@@ -478,19 +545,21 @@ export default class GridRender {
 
         const rows = text.split("\n").map(row => row.split("\t"));
         console.log(rows[0])
-           this.editor.value= rows[0];
+        this.editor.value = rows[0];
         const command = new PasteCommand(this.cellMap, startCell, rows);
 
         this.commandHistory.execute(command);
         this.drawGrid();
     }
-   
+
 
 
 
 
     rendere() {
-        
+
+        document.addEventListener('keydown', (e) => this.handleArrowKeys(e));
+
         this.rowTop.addEventListener("click", () => {
 
             const selected = this.selectionManager.getSelectedRange();
@@ -515,10 +584,10 @@ export default class GridRender {
 
             // PASTE
             if (e.ctrlKey && e.key === "v") {
-                  e.preventDefault(); 
-                 
+                e.preventDefault();
+
                 navigator.clipboard.readText().then((text) => {
-                  
+
                     this.pasteData(text); // You write this function
                 });
             }

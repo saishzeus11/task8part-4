@@ -1,5 +1,5 @@
 import Config from "./Config.js";
-import Cell from './Cell.js'
+import Cell from './Cell.js';
 export class Command {
     execute() { }
     undo() { }
