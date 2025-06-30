@@ -35,6 +35,22 @@ export default class RowManager {
 
         this.heights = newHeights;
     }
+    removeRow(index) {
+        const newHeights = new Map();
+
+        for (const [row, height] of this.heights.entries()) {
+            const rowIndex = Number(row);
+
+            if (rowIndex < index) {
+                newHeights.set(rowIndex, height); // keep as-is
+            } else if (rowIndex > index) {
+                newHeights.set(rowIndex - 1, height); // shift up
+            }
+            // else: skip the row at 'index' to delete it
+        }
+
+        this.heights = newHeights;
+    }
 
     getRowIndexAt(y) {
         let ry = 0;

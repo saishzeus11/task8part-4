@@ -1,11 +1,11 @@
 import Config from "./Config.js";
 import Cell from "./Cell.js";
 import { CommandHistory } from "./CommandManager.js";
-import { CellEditCommand, ResizeCommand } from "./CommandManager.js";
+import { CellEditCommand, InsertColumnCommand, InsertRowCommand, ResizeCommand } from "./CommandManager.js";
 
 
 export default class GridRender {
-    constructor(ColumnManager, RowManager, Cell, SelectionManager, ScrollManager, canvas, editor, input, rowTop,rowBottom,colLeft,colRight) {
+    constructor(ColumnManager, RowManager, Cell, SelectionManager, ScrollManager, canvas, editor, input, rowTop, rowBottom, colLeft, colRight, contextMenu, menuButtons) {
 
         this.canvas = canvas;
         this.ctx = this.canvas.getContext("2d");
@@ -17,10 +17,12 @@ export default class GridRender {
 
         this.rowTop = rowTop;
         this.rowBottom = rowBottom;
-        this.colLeft=colLeft;
-        this.colRight=colRight;
+        this.colLeft = colLeft;
+        this.colRight = colRight;
         this.editor = editor;
 
+        this.contextMenu = contextMenu;
+        this.menuButtons = menuButtons;
 
         this.colManager = new ColumnManager();
         this.rowManager = new RowManager();
@@ -239,7 +241,7 @@ export default class GridRender {
 
         this.cellMap = newMap;
         this.rowManager.insertRow(insertIndex); // You need to implement this
-         Config.totalRows++; // 👈 Increase row count
+        Config.totalRows++; // 👈 Increase row count
         this.drawGrid();
     }
     insertRowAbove() {
@@ -260,7 +262,7 @@ export default class GridRender {
 
         this.cellMap = newMap;
         this.rowManager.insertRow(insertIndex); // Same helper used
-          Config.totalRows++; // 👈 Increase row count
+        Config.totalRows++; // 👈 Increase row count
         this.drawGrid();
     }
     insertColumnLeft() {
@@ -442,22 +444,127 @@ export default class GridRender {
 
 
     rendere() {
-        this.colLeft.addEventListener("click", () => {
-            this.insertColumnLeft();
-        })
-        this.colRight.addEventListener("click", () => {
-            this.insertColumnRight();
+        this.rowTop.addEventListener("click", () => {
+
+            const selected = this.selectionManager.getSelectedRange();
+            if (!selected) return;
+
+            const rowIndex = selected.startRow;
+            const command = new InsertRowCommand(this.rowManager, this.cellMap, rowIndex, "top");
+            this.commandHistory.execute(command);
+            Config.totalRows++; // 👈 Increase row count
+
+            this.drawGrid();
+
         })
         this.rowBottom.addEventListener("click", () => {
-            this.insertRowBelow();
+
+            const selected = this.selectionManager.getSelectedRange();
+            if (!selected) return;
+
+            const rowIndex = selected.startRow;
+            const command = new InsertRowCommand(this.rowManager, this.cellMap, rowIndex, "bottom");
+            this.commandHistory.execute(command);
+            Config.totalRows++; // 👈 Increase row count
+
+            this.drawGrid();
         })
-        this.rowTop.addEventListener("click", () => {
-            this.insertRowAbove();
+        this.colRight.addEventListener("click", () => {
+            const selected = this.selectionManager.getSelectedRange();
+            if (!selected) return;
+
+            const colIndex = selected.endCol; // insert after current selection
+            const command = new InsertColumnCommand(this.colManager, this.cellMap, colIndex, "right");
+            this.commandHistory.execute(command);
+            Config.totalCols++; // Increase column count
+            this.drawGrid();
+        });
+        this.colLeft.addEventListener("click", () => {
+            const selected = this.selectionManager.getSelectedRange();
+            if (!selected) return;
+
+            const colIndex = selected.startCol; // insert before current selection
+            const command = new InsertColumnCommand(this.colManager, this.cellMap, colIndex, "left");
+            this.commandHistory.execute(command);
+            Config.totalCols++; // Increase column count
+            this.drawGrid();
+        });
+
+        this.menuButtons.insertRowAbove.addEventListener('click', () => {
+
+            const selected = this.selectionManager.getSelectedRange();
+            if (!selected) return;
+
+            const rowIndex = selected.startRow;
+            const command = new InsertRowCommand(this.rowManager, this.cellMap, rowIndex, "top");
+            this.commandHistory.execute(command);
+            Config.totalRows++; // 👈 Increase row count
+
+            this.drawGrid();
         })
+        this.menuButtons.insertRowBelow.addEventListener('click', () => {
+
+            const selected = this.selectionManager.getSelectedRange();
+            if (!selected) return;
+
+            const rowIndex = selected.startRow;
+            const command = new InsertRowCommand(this.rowManager, this.cellMap, rowIndex, "bottom");
+            this.commandHistory.execute(command);
+            Config.totalRows++; // 👈 Increase row count
+
+            this.drawGrid();
+        })
+        this.menuButtons.insertColLeft.addEventListener('click', () => {
+            const selected = this.selectionManager.getSelectedRange();
+            if (!selected) return;
+
+            const colIndex = selected.startCol; // insert before current selection
+            const command = new InsertColumnCommand(this.colManager, this.cellMap, colIndex, "left");
+            this.commandHistory.execute(command);
+            Config.totalCols++; // Increase column count
+            this.drawGrid();
+        })
+        this.menuButtons.insertColRight.addEventListener('click', () => {
+            const selected = this.selectionManager.getSelectedRange();
+            if (!selected) return;
+
+            const colIndex = selected.endCol; // insert after current selection
+            const command = new InsertColumnCommand(this.colManager, this.cellMap, colIndex, "right");
+            this.commandHistory.execute(command);
+            Config.totalCols++; // Increase column count
+            this.drawGrid();
+        })
+
+
+
         this.editor.addEventListener("input", () => {
             // Optional: prevent accidental blur on mousedown elsewhere
             this.currVal = this.editor.value;
         });
+        this.canvas.addEventListener("contextmenu", (e) => {
+            console.log("1")
+            e.preventDefault(); // prevent default right-click menu
+
+            console.log("in side ")
+            const menu = document.getElementById("contextMenu");
+            menu.style.left = `${e.pageX}px`;
+            menu.style.top = `${e.pageY}px`;
+            menu.style.display = "flex";
+
+            // Optionally store selected cell
+            const rect = this.canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const cell = this.cell.getCellAtPosition(x, y, this.rowManager, this.colManager, this.scrollManager);
+            this.contextSelectedCell = cell;
+        });
+        document.addEventListener("click", (e) => {
+            const menu = document.getElementById("contextMenu");
+            if (!menu.contains(e.target)) {
+                menu.style.display = "none";
+            }
+        });
+
         this.input.addEventListener("change", (e) => {
 
             const file = e.target.files[0];

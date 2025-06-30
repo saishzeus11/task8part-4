@@ -35,6 +35,21 @@ export default class ColumnManager {
 
         this.widths = newWidths;
     }
+    removeColumn(index) {
+        const newWidths = new Map();
+
+        for (const [col, width] of this.widths.entries()) {
+            const colIndex = Number(col);
+            if (colIndex < index) {
+                newWidths.set(colIndex, width); // keep as-is
+            } else if (colIndex > index) {
+                newWidths.set(colIndex - 1, width); // shift left
+            }
+            // else: skip the one we're removing
+        }
+
+        this.widths = newWidths;
+    }
 
     getColIndexAt(x) {
         let cx = 0;

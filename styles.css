@@ -25,6 +25,21 @@
             cursor: default;
         }
 
+        button{
+            flex: 1;
+        }
+
+        #contextMenu button{
+            border-top: none;
+    border-right: none;
+    border-left: none;
+    border-bottom: 1px solid black;
+    border-color: gray;
+        }
+        
+        #contextMenu button:hover{
+           background-color:#ffffff;
+        }
         #cellEditor {
             position: absolute;
             border: 1px solid #137E43;
@@ -89,3 +104,68 @@
         #v-thumb:hover {
             background: #999;
         }
+
+        #excelHeading {
+  background-color: #f8f9fa;
+  padding: 11px 6px;
+  border-bottom: 2px solid #ccc;
+  display: flex;
+  flex-direction: column;
+
+  font-family: Arial, sans-serif;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+#excelHeading div{
+    padding: 6px;
+    background-color: #e4e4e4;
+    width: 98.2vw;
+}
+
+#excelHeading div button{
+    width: 100px;
+    margin-right: 6px;
+}
+#excelHeading h1 {
+  margin: 0;
+  text-align: center;
+  font-size: 24px;
+  color: #2c3e50;
+}
+
+#jsonInput {
+  padding: 6px;
+  font-size: 14px;
+}
+
+.stats {
+  font-size: 14px;
+  color: #333;
+  background-color: #eef1f4;
+  padding: 8px;
+  border-radius: 4px;
+}
+
+.stats span {
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+.buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.buttons button {
+  padding: 6px 12px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.buttons button:hover {
+  background-color: #2980b9;
+}
