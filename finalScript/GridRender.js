@@ -1,7 +1,7 @@
 import Config from "./Config.js";
 import Cell from "./Cell.js";
 import { CommandHistory } from "./CommandManager.js";
-import { CellEditCommand, InsertColumnCommand, InsertRowCommand, ResizeCommand } from "./CommandManager.js";
+import { CellEditCommand, InsertColumnCommand, InsertRowCommand, ResizeCommand, PasteCommand } from "./CommandManager.js";
 
 
 export default class GridRender {
@@ -456,9 +456,41 @@ export default class GridRender {
 
         this.editor.dataset.originalValue = newValue;
     }
+    getSelectedText() {
+        const { startRow, startCol, endRow, endCol } = this.selectionManager.getSelectedRange();
+        let result = "";
+
+        for (let r = startRow; r <= endRow; r++) {
+            let rowText = "";
+            for (let c = startCol; c <= endCol; c++) {
+                const key = `${r},${c}`;
+                const cell = this.cellMap.get(key);
+                rowText += (cell?.value || "") + "\t";
+            }
+            result += rowText.trimEnd() + "\n";
+        }
+
+        return result.trimEnd();
+    }
+    pasteData(text) {
+        const startCell = this.selectionManager.startCell;
+        if (!startCell) return;
+
+        const rows = text.split("\n").map(row => row.split("\t"));
+        console.log(rows[0])
+           this.editor.value= rows[0];
+        const command = new PasteCommand(this.cellMap, startCell, rows);
+
+        this.commandHistory.execute(command);
+        this.drawGrid();
+    }
+   
+
+
 
 
     rendere() {
+        
         this.rowTop.addEventListener("click", () => {
 
             const selected = this.selectionManager.getSelectedRange();
@@ -472,6 +504,26 @@ export default class GridRender {
             this.drawGrid();
 
         })
+        document.addEventListener("keydown", (e) => {
+            // COPY
+            if (e.ctrlKey && e.key === "c") {
+                const text = this.getSelectedText(); // You write this function
+                navigator.clipboard.writeText(text).then(() => {
+                    console.log("Copied to clipboard");
+                });
+            }
+
+            // PASTE
+            if (e.ctrlKey && e.key === "v") {
+                  e.preventDefault(); 
+                 
+                navigator.clipboard.readText().then((text) => {
+                  
+                    this.pasteData(text); // You write this function
+                });
+            }
+        });
+
         this.rowBottom.addEventListener("click", () => {
 
             const selected = this.selectionManager.getSelectedRange();

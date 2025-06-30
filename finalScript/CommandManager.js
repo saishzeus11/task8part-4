@@ -1,5 +1,5 @@
 import Config from "./Config.js";
-
+import Cell from './Cell.js'
 export class Command {
     execute() { }
     undo() { }
@@ -193,6 +193,49 @@ export class CommandHistory {
         if (cmd) {
             cmd.execute();
             this.undoStack.push(cmd);
+        }
+    }
+}
+
+export class PasteCommand extends Command {
+    constructor(cellMap, startCell, pastedData) {
+        super();
+        this.cellMap = cellMap;
+        this.startCell = startCell;
+        this.pastedData = pastedData; // 2D array
+        this.oldValues = new Map();
+    }
+
+    execute() {
+        const { row: startRow, col: startCol } = this.startCell;
+
+        this.pastedData.forEach((rowVals, i) => {
+            rowVals.forEach((newVal, j) => {
+                const row = startRow + i;
+                const col = startCol + j;
+                const key = `${row},${col}`;
+                const cell = this.cellMap.get(key);
+
+                if (cell) {
+                    this.oldValues.set(key, cell.value);
+                    cell.setValue(newVal);
+                } else {
+                    const newCell = new Cell(newVal);
+                    this.oldValues.set(key, "");
+                    this.cellMap.set(key, newCell);
+                }
+            });
+        });
+    }
+
+    undo() {
+        for (let [key, oldVal] of this.oldValues.entries()) {
+            const cell = this.cellMap.get(key);
+            if (cell) {
+                cell.setValue(oldVal);
+            } else {
+                this.cellMap.set(key, new Cell(oldVal));
+            }
         }
     }
 }
