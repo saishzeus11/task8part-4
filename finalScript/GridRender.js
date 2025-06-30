@@ -300,6 +300,14 @@ export default class GridRender {
         // Draw column headers (always visible, no clipping needed)
         ctx.fillStyle = '#f3f3f3';
         ctx.fillRect(Config.ROW_HEADER_WIDTH, 0, ctx.canvas.width - Config.ROW_HEADER_WIDTH, Config.COL_HEADER_HEIGHT);
+        if (range.endRow <= 99) {
+            console.log(range.endCol)
+            Config.ROW_HEADER_WIDTH = 25;
+        } else if (range.endRow >= 100 && range.endRow <= 999) {
+            Config.ROW_HEADER_WIDTH = 30;
+        } else {
+            Config.ROW_HEADER_WIDTH = 50;
+        }
 
         for (let col = range.startCol; col <= range.endCol; col++) {
 
@@ -313,10 +321,14 @@ export default class GridRender {
 
             ctx.strokeStyle = '#ccc';
             ctx.strokeRect(x, 0, width, Config.COL_HEADER_HEIGHT);
+            const label = this.getColName(col); // Like A, B, C, ...
 
+            const textWidth = ctx.measureText(label).width;
+            const textX = x + (width - textWidth) / 2;
+            const textY = Config.COL_HEADER_HEIGHT / 2 + 4; // vertically center-ish
             ctx.fillStyle = '#333';
             ctx.font = '12px Arial';
-            ctx.fillText(this.getColName(col), x + 5, 16);
+            ctx.fillText(label, textX, textY);
         }
 
         // Draw row headers (always visible, no clipping needed)
@@ -333,10 +345,13 @@ export default class GridRender {
             ctx.fillRect(0, y, Config.ROW_HEADER_WIDTH, height);
             ctx.strokeStyle = '#ccc';
             ctx.strokeRect(0, y, Config.ROW_HEADER_WIDTH, height);
-
+            const label = (row + 1).toString(); // 1-based row number
+            const textWidth = ctx.measureText(label).width;
+            const textX = Config.ROW_HEADER_WIDTH - 5 - textWidth; // 5px padding from right edge
+            const textY = y + height / 2 + 4; // vertical center-ish
             ctx.fillStyle = '#333';
             ctx.font = '12px Arial';
-            ctx.fillText(row + 1, 5, y + height / 2 + 4);
+            ctx.fillText(label, textX, textY);
         }
 
         // Clip the cell area to prevent overlap with headers
@@ -617,6 +632,7 @@ export default class GridRender {
 
         document.addEventListener("keydown", (e) => {
             if (e.ctrlKey && e.key === "z") {
+                console.log("undo");
                 this.commandHistory.undo();
                 this.updateEditorPosition(this.cellMap);
                 this.drawGrid();
