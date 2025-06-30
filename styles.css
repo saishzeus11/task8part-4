@@ -1,0 +1,91 @@
+       * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            background-color: #fff;
+        }
+
+        canvas {
+            display: block;
+            border: 1px solid #ccc;
+            cursor: default;
+        }
+
+        #cellEditor {
+            position: absolute;
+            border: 1px solid #137E43;
+            font: 12px Arial;
+            padding: 2px;
+            z-index: 100;
+            /* Increase it to ensure it's above canvas */
+            display: none;
+            background-color: white;
+            /* Ensure visible */
+            outline: none;
+        }
+
+        #h-scrollbar {
+            position: fixed;
+            left: 0;
+            right: 17px;
+            bottom: 0;
+            height: 16px;
+            background: #f3f3f3;
+            z-index: 20;
+            user-select: none;
+            border-top: 1px solid #ccc;
+        }
+
+        #h-thumb {
+            position: absolute;
+            top: 2px;
+            height: 12px;
+            background: #bbb;
+            border-radius: 6px;
+            cursor: pointer;
+            min-width: 30px;
+        }
+
+        #h-thumb:hover {
+            background: #999;
+        }
+
+        #v-scrollbar {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 16px;
+            width: 16px;
+            background: #f3f3f3;
+            z-index: 20;
+            user-select: none;
+            border-left: 1px solid #ccc;
+        }
+
+        #v-thumb {
+            position: absolute;
+            left: 2px;
+            width: 12px;
+            background: #bbb;
+            border-radius: 6px;
+            cursor: pointer;
+            min-height: 30px;
+        }
+
+        #v-thumb:hover {
+            background: #999;
+        }
